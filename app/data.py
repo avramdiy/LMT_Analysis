@@ -13,15 +13,22 @@ def display_table():
     if not os.path.exists(FILE_PATH):
         return "File not found. Please check the file path.", 404
     
-    # Read the file into a Pandas DataFrame
     try:
-        # Adjust the delimiter to match your file structure (e.g., '\t' for tab-separated data)
-        df = pd.read_csv(FILE_PATH, delimiter="\t")
+        # Load the file, setting the header row to the second row (index 1)
+        df = pd.read_csv(FILE_PATH, delimiter=",", header=0)
+        
+        # Clean column names to handle potential issues like extra spaces
+        df.columns = df.columns.str.strip()
+        
+        # Drop the 'OpenInt' column if it exists
+        if 'OpenInt' in df.columns:
+            df = df.drop(columns=['OpenInt'])
+        else:
+            print("Column 'OpenInt' not found. Skipping.")
     except Exception as e:
         return f"Error reading the file: {str(e)}", 500
     
     # Convert the DataFrame to HTML with attributes aligned
-    # This includes adding classes for styling and ensuring the table is structured clearly
     html_table = df.to_html(
         classes='table table-bordered table-hover text-center', 
         index=False, 
