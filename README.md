@@ -23,3 +23,7 @@
 - Data is skewed, showing only an uptrend, because the price in Nov2016 was opening from 80cents to $1.50
 
 ### 5th Commit
+
+- Create a third route & plot showing the monthly average "Close" from 11/01/2016 - 11/30/2017.
+
+- Naturally, the data is skewewed in an uptrend from the growth starting at zero dollars.
