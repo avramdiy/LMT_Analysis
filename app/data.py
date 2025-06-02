@@ -68,14 +68,15 @@ def display_table():
     </head>
     <body>
         <h1>Data Table</h1>
-        <a href="/volume-monthly">View Average Monthly Volume (11/2016 - 11/2017)</a>
+        <a href="/monthlyvolume">View Average Monthly Volume (11/2016 - 11/2017)</a>
+        <a href="/monthlyopen">View Average Monthly Open (11/2016 - 11/2017)</a>
         {}
     </body>
     </html>
     """.format(html_table)
     return template
 
-@app.route('/volume-monthly')
+@app.route('/monthlyvolume')
 def plot_monthly_volume():
     df, err = load_and_prepare_data()
     if err:
@@ -138,6 +139,76 @@ def plot_monthly_volume():
     </body>
     </html>
     """.format(graph_html)
+    return template
+
+@app.route('/monthlyopen')
+def plot_monthly_open():
+    df, err = load_and_prepare_data()
+    if err:
+        return err, 404
+
+    # Filter date range
+    start_date = pd.Timestamp('2016-11-01')
+    end_date = pd.Timestamp('2017-11-30')
+    df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+
+    if df.empty:
+        return "No data available for the specified date range.", 404
+
+    if 'Open' not in df.columns:
+        return "Column 'Open' not found.", 404
+
+    df['Open'] = pd.to_numeric(df['Open'], errors='coerce')
+    df = df.dropna(subset=['Open'])
+
+    monthly_open = df.groupby(pd.Grouper(key='Date', freq='M'))['Open'].mean().reset_index()
+    monthly_open = monthly_open.sort_values('Date')
+
+    trace = go.Scatter(
+        x=monthly_open['Date'],
+        y=monthly_open['Open'],
+        mode='lines+markers',
+        name='Average Open Price',
+        line=dict(color='firebrick')
+    )
+
+    layout = go.Layout(
+        title='Average Monthly Open Price (Nov 2016 - Nov 2017)',
+        xaxis=dict(title='Month'),
+        yaxis=dict(title='Average Open Price'),
+        margin=dict(l=40, r=40, t=50, b=40)
+    )
+
+    fig = go.Figure(data=[trace], layout=layout)
+    graph_html = pyo.plot(fig, output_type='div', include_plotlyjs=False)
+
+    template = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Monthly Average Open Price</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+        <style>
+            body {{
+                max-width: 900px;
+                margin: 30px auto;
+                font-family: Arial, sans-serif;
+            }}
+            a {{
+                display: block;
+                margin-bottom: 20px;
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+        <a href="/">← Back to Data Table</a>
+        <h1>Average Monthly Open Price</h1>
+        {graph_html}
+    </body>
+    </html>
+    """
     return template
 
 if __name__ == '__main__':
