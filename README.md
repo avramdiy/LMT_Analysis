@@ -14,6 +14,8 @@
 
 ### 3rd Commit
 
+- Filter data to show rows from 11/01/2012 to 11/30/2017. Created a route and plot to show average monthly trading "Volume" from 11/01/2016 to 11/30/2017.
+
 ### 4th Commit
 
 ### 5th Commit
